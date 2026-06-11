@@ -26,16 +26,72 @@ function getOpenAIClient(apiKey = process.env.NVIDIA_API_KEY) {
   return openAIClients.get(apiKey);
 }
 
-async function completeWith({ apiKey, model, messages }) {
+async function streamWith({ apiKey, model, messages }) {
   const client = getOpenAIClient(apiKey);
+  // Reduced timeouts for faster UX — fast model first, then fallback
+  const timeout =
+    model === (process.env.NVIDIA_MODEL || "nvidia/llama-3.1-nemotron-nano-8b-v1")
+      ? Number(process.env.NVIDIA_PRIMARY_TIMEOUT_MS || 8000)
+      : Number(process.env.NVIDIA_FALLBACK_TIMEOUT_MS || 15000);
 
-  return client.chat.completions.create({
-    model,
-    messages,
-    temperature: 0.2,
-    top_p: 0.7,
-    max_tokens: 220,
+  return client.chat.completions.create(
+    {
+      model,
+      messages,
+      temperature: 0.2,
+      top_p: 0.7,
+      // Reduced max_tokens for faster first-token response
+      max_tokens: 150,
+      stream: true,
+    },
+    { timeout },
+  );
+}
+
+function textResponse(content, status = 200) {
+  return new Response(content, {
+    status,
+    headers: {
+      "Content-Type": "text/plain; charset=utf-8",
+      "Cache-Control": "no-store",
+    },
   });
+}
+
+function streamResponse(completionStream) {
+  const encoder = new TextEncoder();
+
+  return new Response(
+    new ReadableStream({
+      async start(controller) {
+        try {
+          for await (const chunk of completionStream) {
+            const content = chunk.choices?.[0]?.delta?.content || "";
+            if (content) {
+              controller.enqueue(encoder.encode(content));
+            }
+          }
+        } catch (error) {
+          controller.enqueue(
+            encoder.encode(
+              "\n\nCareBot is temporarily unavailable. Please use the contact form so the NGO team can assist you.",
+            ),
+          );
+        } finally {
+          controller.close();
+        }
+      },
+    }),
+    {
+      headers: {
+        "Content-Type": "text/plain; charset=utf-8",
+        "Cache-Control": "no-store",
+        // Disable proxy buffering for instant streaming
+        "X-Accel-Buffering": "no",
+        "Transfer-Encoding": "chunked",
+      },
+    },
+  );
 }
 
 export async function POST(request) {
@@ -54,55 +110,52 @@ export async function POST(request) {
     }
 
     const { question, history } = parsed.data;
-    const safetyResponse = getCareBotSafetyResponse(question);
 
+    // Safety check — instant local response, no LLM needed
+    const safetyResponse = getCareBotSafetyResponse(question);
     if (safetyResponse) {
-      return NextResponse.json({ answer: safetyResponse });
+      return textResponse(safetyResponse);
     }
 
     const primaryApiKey = process.env.NVIDIA_API_KEY;
     const fallbackApiKey = process.env.NVIDIA_FALLBACK_API_KEY || primaryApiKey;
-    const model = process.env.NVIDIA_MODEL || "meta/llama-3.3-70b-instruct";
+
+    // Use fast NVIDIA Nemotron Nano as primary (8B, very fast TTFT)
+    // Fallback to llama-3.1-8b-instruct
+    const model = process.env.NVIDIA_MODEL || "nvidia/llama-3.1-nemotron-nano-8b-v1";
     const fallbackModel =
       process.env.NVIDIA_FALLBACK_MODEL || "meta/llama-3.1-8b-instruct";
+
     const messages = [
       { role: "system", content: careBotSystemPrompt },
-      ...history.slice(-5),
+      ...history.slice(-4), // Slightly smaller context window for speed
       { role: "user", content: question },
     ];
 
-    let completion;
+    let completionStream;
 
     try {
-      completion = await completeWith({
+      completionStream = await streamWith({
         apiKey: primaryApiKey,
         model,
         messages,
       });
     } catch (error) {
-      completion = await completeWith({
+      // Silently fall back to secondary model
+      completionStream = await streamWith({
         apiKey: fallbackApiKey,
         model: fallbackModel,
         messages,
       });
     }
 
-    const answer = completion.choices?.[0]?.message?.content?.trim();
-
-    if (!answer) {
-      throw new Error("Empty CareBot response.");
-    }
-
-    return NextResponse.json({ answer });
+    return streamResponse(completionStream);
   } catch (error) {
     const isMissingKey = error.message?.includes("NVIDIA_API_KEY");
 
-    return NextResponse.json(
-      {
-        error:
-          "CareBot is temporarily unavailable. Please use the contact form so the NGO team can assist you.",
-      },
-      { status: isMissingKey ? 503 : 500 },
+    return textResponse(
+      "CareBot is temporarily unavailable. Please use the contact form so the NGO team can assist you.",
+      isMissingKey ? 503 : 500,
     );
   }
 }

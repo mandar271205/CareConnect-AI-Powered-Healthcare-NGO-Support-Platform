@@ -4,6 +4,11 @@ import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { CheckCircle2, Loader2 } from "lucide-react";
 import { useForm, useWatch } from "react-hook-form";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { contactSchema, contactSubjectOptions } from "@/lib/validators";
 import { CharacterCounter, FieldError, Honeypot } from "./FormParts";
 
@@ -23,6 +28,7 @@ export default function ContactForm({ onToast }) {
     register,
     handleSubmit,
     reset,
+    setValue,
     control,
     formState: { errors, isSubmitting },
   } = useForm({
@@ -30,6 +36,7 @@ export default function ContactForm({ onToast }) {
     defaultValues,
   });
   const message = useWatch({ control, name: "message" }) || "";
+  const consentValue = useWatch({ control, name: "consent" }) || false;
 
   async function onSubmit(values) {
     setFormError("");
@@ -77,13 +84,13 @@ export default function ContactForm({ onToast }) {
               Your message has been submitted successfully. The NGO team can now
               review your enquiry.
             </p>
-            <button
+            <Button
               type="button"
-              className="btn-primary mt-6"
+              className="mt-6 h-11 rounded-lg font-bold"
               onClick={() => setSuccess(false)}
             >
               Send Another Message
-            </button>
+            </Button>
           </div>
         </div>
       </div>
@@ -96,10 +103,10 @@ export default function ContactForm({ onToast }) {
 
       <div className="grid gap-5 sm:grid-cols-2">
         <div>
-          <label className="form-label" htmlFor="contact-name">
+          <Label className="form-label" htmlFor="contact-name">
             Name
-          </label>
-          <input
+          </Label>
+          <Input
             id="contact-name"
             className="form-input"
             type="text"
@@ -109,10 +116,10 @@ export default function ContactForm({ onToast }) {
           <FieldError message={errors.name?.message} />
         </div>
         <div>
-          <label className="form-label" htmlFor="contact-email">
+          <Label className="form-label" htmlFor="contact-email">
             Email
-          </label>
-          <input
+          </Label>
+          <Input
             id="contact-email"
             className="form-input"
             type="email"
@@ -124,9 +131,9 @@ export default function ContactForm({ onToast }) {
       </div>
 
       <div>
-        <label className="form-label" htmlFor="contact-subject">
+        <Label className="form-label" htmlFor="contact-subject">
           Subject
-        </label>
+        </Label>
         <select
           id="contact-subject"
           className="form-input"
@@ -143,10 +150,10 @@ export default function ContactForm({ onToast }) {
       </div>
 
       <div>
-        <label className="form-label" htmlFor="contact-message">
+        <Label className="form-label" htmlFor="contact-message">
           Message
-        </label>
-        <textarea
+        </Label>
+        <Textarea
           id="contact-message"
           className="form-input min-h-36 resize-y"
           maxLength={1000}
@@ -156,11 +163,17 @@ export default function ContactForm({ onToast }) {
         <FieldError message={errors.message?.message} />
       </div>
 
-      <label className="flex gap-3 rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm font-semibold leading-6 text-slate-700">
-        <input
-          type="checkbox"
-          className="mt-1 size-4 rounded border-slate-300 text-teal-700 focus:ring-teal-700"
-          {...register("consent")}
+      <label className="flex gap-3 rounded-lg border border-border bg-muted/50 p-4 text-sm font-semibold leading-6 text-slate-700">
+        <Checkbox
+          checked={consentValue}
+          onCheckedChange={(value) =>
+            setValue("consent", Boolean(value), {
+              shouldDirty: true,
+              shouldTouch: true,
+              shouldValidate: true,
+            })
+          }
+          className="mt-1 border-slate-300 data-checked:border-primary data-checked:bg-primary"
         />
         <span>
           I consent to the NGO team reviewing this enquiry and contacting me
@@ -175,10 +188,10 @@ export default function ContactForm({ onToast }) {
         </div>
       ) : null}
 
-      <button type="submit" className="btn-primary justify-center sm:ml-auto" disabled={isSubmitting}>
+      <Button type="submit" className="h-11 justify-center rounded-lg font-bold sm:ml-auto" disabled={isSubmitting}>
         {isSubmitting ? <Loader2 className="size-4 animate-spin" /> : null}
         Send Message
-      </button>
+      </Button>
     </form>
   );
 }

@@ -1,3 +1,6 @@
+import { Checkbox } from "@/components/ui/checkbox";
+import { cn } from "@/lib/utils";
+
 export function FieldError({ message }) {
   if (!message) {
     return null;
@@ -31,19 +34,13 @@ export function Honeypot({ register }) {
 export function CheckboxCard({ label, checked, onChange }) {
   return (
     <label
-      className={`choice-card ${checked ? "choice-card-active" : ""}`}
+      className={cn("choice-card", checked && "choice-card-active")}
     >
-      <input
-        type="checkbox"
-        className="sr-only"
+      <Checkbox
         checked={checked}
-        onChange={onChange}
+        onCheckedChange={onChange}
+        className="border-slate-300 data-checked:border-primary data-checked:bg-primary"
       />
-      <span className="grid size-5 shrink-0 place-items-center rounded border border-slate-300 bg-white">
-        {checked ? (
-          <span className="size-2.5 rounded-sm bg-teal-700" aria-hidden="true" />
-        ) : null}
-      </span>
       <span>{label}</span>
     </label>
   );

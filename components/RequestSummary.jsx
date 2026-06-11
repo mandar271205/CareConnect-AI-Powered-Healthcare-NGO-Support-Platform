@@ -5,6 +5,7 @@ import {
   MessageCircle,
   Route,
 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export default function RequestSummary({ data, onReset }) {
   return (
@@ -81,9 +82,9 @@ export default function RequestSummary({ data, onReset }) {
         </p>
       )}
 
-      <button type="button" className="btn-primary mt-6" onClick={onReset}>
+      <Button type="button" className="mt-6 h-11 rounded-lg font-bold" onClick={onReset}>
         Submit Another Request
-      </button>
+      </Button>
     </div>
   );
 }

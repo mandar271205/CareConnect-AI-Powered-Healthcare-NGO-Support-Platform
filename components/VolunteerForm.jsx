@@ -4,6 +4,11 @@ import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { CheckCircle2, Loader2 } from "lucide-react";
 import { useForm, useWatch } from "react-hook-form";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   availableDayOptions,
   expertiseOptions,
@@ -49,6 +54,7 @@ export default function VolunteerForm({ onToast }) {
   const selectedExpertise = useWatch({ control, name: "expertise" }) || [];
   const selectedDays = useWatch({ control, name: "availableDays" }) || [];
   const motivation = useWatch({ control, name: "motivation" }) || "";
+  const consentValue = useWatch({ control, name: "consent" }) || false;
 
   function toggleArray(field, selected, value) {
     const next = selected.includes(value)
@@ -110,13 +116,13 @@ export default function VolunteerForm({ onToast }) {
               review your volunteer submission and contact you using your
               preferred details.
             </p>
-            <button
+            <Button
               type="button"
-              className="btn-primary mt-6"
+              className="mt-6 h-11 rounded-lg font-bold"
               onClick={() => setSuccess(false)}
             >
               Submit Another Registration
-            </button>
+            </Button>
           </div>
         </div>
       </div>
@@ -129,10 +135,10 @@ export default function VolunteerForm({ onToast }) {
 
       <div className="grid gap-5 sm:grid-cols-2">
         <div>
-          <label className="form-label" htmlFor="volunteer-name">
+          <Label className="form-label" htmlFor="volunteer-name">
             Full name
-          </label>
-          <input
+          </Label>
+          <Input
             id="volunteer-name"
             className="form-input"
             type="text"
@@ -142,10 +148,10 @@ export default function VolunteerForm({ onToast }) {
           <FieldError message={errors.fullName?.message} />
         </div>
         <div>
-          <label className="form-label" htmlFor="volunteer-email">
+          <Label className="form-label" htmlFor="volunteer-email">
             Email
-          </label>
-          <input
+          </Label>
+          <Input
             id="volunteer-email"
             className="form-input"
             type="email"
@@ -158,10 +164,10 @@ export default function VolunteerForm({ onToast }) {
 
       <div className="grid gap-5 sm:grid-cols-2">
         <div>
-          <label className="form-label" htmlFor="volunteer-phone">
+          <Label className="form-label" htmlFor="volunteer-phone">
             Phone
-          </label>
-          <input
+          </Label>
+          <Input
             id="volunteer-phone"
             className="form-input"
             type="tel"
@@ -171,9 +177,9 @@ export default function VolunteerForm({ onToast }) {
           <FieldError message={errors.phone?.message} />
         </div>
         <div>
-          <label className="form-label" htmlFor="qualification">
+          <Label className="form-label" htmlFor="qualification">
             Qualification
-          </label>
+          </Label>
           <select
             id="qualification"
             className="form-input"
@@ -207,10 +213,10 @@ export default function VolunteerForm({ onToast }) {
 
       <div className="grid gap-5 sm:grid-cols-2">
         <div>
-          <label className="form-label" htmlFor="experience-years">
+          <Label className="form-label" htmlFor="experience-years">
             Years of experience optional
-          </label>
-          <input
+          </Label>
+          <Input
             id="experience-years"
             className="form-input"
             type="number"
@@ -221,10 +227,10 @@ export default function VolunteerForm({ onToast }) {
           <FieldError message={errors.experienceYears?.message} />
         </div>
         <div>
-          <label className="form-label" htmlFor="volunteer-city">
+          <Label className="form-label" htmlFor="volunteer-city">
             City or district
-          </label>
-          <input
+          </Label>
+          <Input
             id="volunteer-city"
             className="form-input"
             type="text"
@@ -251,10 +257,10 @@ export default function VolunteerForm({ onToast }) {
       </div>
 
       <div>
-        <label className="form-label" htmlFor="motivation">
+        <Label className="form-label" htmlFor="motivation">
           Motivation
-        </label>
-        <textarea
+        </Label>
+        <Textarea
           id="motivation"
           className="form-input min-h-28 resize-y"
           maxLength={300}
@@ -264,11 +270,17 @@ export default function VolunteerForm({ onToast }) {
         <FieldError message={errors.motivation?.message} />
       </div>
 
-      <label className="flex gap-3 rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm font-semibold leading-6 text-slate-700">
-        <input
-          type="checkbox"
-          className="mt-1 size-4 rounded border-slate-300 text-teal-700 focus:ring-teal-700"
-          {...register("consent")}
+      <label className="flex gap-3 rounded-lg border border-border bg-muted/50 p-4 text-sm font-semibold leading-6 text-slate-700">
+        <Checkbox
+          checked={consentValue}
+          onCheckedChange={(value) =>
+            setValue("consent", Boolean(value), {
+              shouldDirty: true,
+              shouldTouch: true,
+              shouldValidate: true,
+            })
+          }
+          className="mt-1 border-slate-300 data-checked:border-primary data-checked:bg-primary"
         />
         <span>
           I consent to the NGO team reviewing this volunteer registration and
@@ -283,10 +295,10 @@ export default function VolunteerForm({ onToast }) {
         </div>
       ) : null}
 
-      <button type="submit" className="btn-primary justify-center sm:ml-auto" disabled={isSubmitting}>
+      <Button type="submit" className="h-11 justify-center rounded-lg font-bold sm:ml-auto" disabled={isSubmitting}>
         {isSubmitting ? <Loader2 className="size-4 animate-spin" /> : null}
         Register as Volunteer
-      </button>
+      </Button>
     </form>
   );
 }

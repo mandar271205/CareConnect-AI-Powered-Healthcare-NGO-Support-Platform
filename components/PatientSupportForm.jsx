@@ -4,6 +4,12 @@ import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AlertTriangle, Loader2, ShieldCheck } from "lucide-react";
 import { useForm, useWatch } from "react-hook-form";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   ageGroups,
   patientSupportSchema,
@@ -50,6 +56,7 @@ export default function PatientSupportForm({ onToast }) {
     useWatch({ control, name: "supportTypes" }) || [];
   const description = useWatch({ control, name: "description" }) || "";
   const preferredContact = useWatch({ control, name: "preferredContact" });
+  const consentValue = useWatch({ control, name: "consent" }) || false;
 
   function toggleSupport(type) {
     const next = selectedSupport.includes(type)
@@ -113,7 +120,8 @@ export default function PatientSupportForm({ onToast }) {
     <form className="grid gap-5" onSubmit={handleSubmit(onSubmit)} noValidate>
       <Honeypot register={register} />
 
-      <div className="rounded-lg border border-orange-200 bg-orange-50 p-4">
+      <Alert className="border-orange-200 bg-orange-50 text-slate-800">
+        <AlertDescription>
         <div className="flex gap-3">
           <AlertTriangle
             aria-hidden="true"
@@ -126,14 +134,15 @@ export default function PatientSupportForm({ onToast }) {
             services.
           </p>
         </div>
-      </div>
+        </AlertDescription>
+      </Alert>
 
       <div className="grid gap-5 sm:grid-cols-2">
         <div>
-          <label className="form-label" htmlFor="patient-full-name">
+          <Label className="form-label" htmlFor="patient-full-name">
             Full name
-          </label>
-          <input
+          </Label>
+          <Input
             id="patient-full-name"
             className="form-input"
             type="text"
@@ -144,9 +153,9 @@ export default function PatientSupportForm({ onToast }) {
         </div>
 
         <div>
-          <label className="form-label" htmlFor="age-group">
+          <Label className="form-label" htmlFor="age-group">
             Age group
-          </label>
+          </Label>
           <select id="age-group" className="form-input" {...register("ageGroup")}>
             <option value="">Select age group</option>
             {ageGroups.map((group) => (
@@ -161,10 +170,10 @@ export default function PatientSupportForm({ onToast }) {
 
       <div className="grid gap-5 sm:grid-cols-2">
         <div>
-          <label className="form-label" htmlFor="contact-number">
+          <Label className="form-label" htmlFor="contact-number">
             Contact number
-          </label>
-          <input
+          </Label>
+          <Input
             id="contact-number"
             className="form-input"
             type="tel"
@@ -175,10 +184,10 @@ export default function PatientSupportForm({ onToast }) {
         </div>
 
         <div>
-          <label className="form-label" htmlFor="patient-email">
+          <Label className="form-label" htmlFor="patient-email">
             Email optional
-          </label>
-          <input
+          </Label>
+          <Input
             id="patient-email"
             className="form-input"
             type="email"
@@ -190,10 +199,10 @@ export default function PatientSupportForm({ onToast }) {
       </div>
 
       <div>
-        <label className="form-label" htmlFor="patient-city">
+        <Label className="form-label" htmlFor="patient-city">
           City or district
-        </label>
-        <input
+        </Label>
+        <Input
           id="patient-city"
           className="form-input"
           type="text"
@@ -219,10 +228,10 @@ export default function PatientSupportForm({ onToast }) {
       </div>
 
       <div>
-        <label className="form-label" htmlFor="patient-description">
+        <Label className="form-label" htmlFor="patient-description">
           Brief description
-        </label>
-        <textarea
+        </Label>
+        <Textarea
           id="patient-description"
           className="form-input min-h-32 resize-y"
           maxLength={500}
@@ -255,11 +264,17 @@ export default function PatientSupportForm({ onToast }) {
         <FieldError message={errors.preferredContact?.message} />
       </div>
 
-      <label className="flex gap-3 rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm font-semibold leading-6 text-slate-700">
-        <input
-          type="checkbox"
-          className="mt-1 size-4 rounded border-slate-300 text-teal-700 focus:ring-teal-700"
-          {...register("consent")}
+      <label className="flex gap-3 rounded-lg border border-border bg-muted/50 p-4 text-sm font-semibold leading-6 text-slate-700">
+        <Checkbox
+          checked={consentValue}
+          onCheckedChange={(value) =>
+            setValue("consent", Boolean(value), {
+              shouldDirty: true,
+              shouldTouch: true,
+              shouldValidate: true,
+            })
+          }
+          className="mt-1 border-slate-300 data-checked:border-primary data-checked:bg-primary"
         />
         <span>
           I consent to the NGO team reviewing this request and contacting me
@@ -279,10 +294,10 @@ export default function PatientSupportForm({ onToast }) {
           <ShieldCheck aria-hidden="true" className="size-4 text-teal-700" />
           Stored only after server validation.
         </p>
-        <button type="submit" className="btn-primary justify-center" disabled={isSubmitting}>
+        <Button type="submit" className="h-11 rounded-lg font-bold" disabled={isSubmitting}>
           {isSubmitting ? <Loader2 className="size-4 animate-spin" /> : null}
           Submit Support Request
-        </button>
+        </Button>
       </div>
     </form>
   );
