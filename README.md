@@ -1,36 +1,136 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# CareConnect — AI-Powered Healthcare NGO Support Platform
 
-## Getting Started
+Live Demo: ADD_LIVE_LINK  
+GitHub Repository: ADD_GITHUB_LINK
 
-First, run the development server:
+CareConnect is a lightweight healthcare NGO support platform for non-emergency patient requests, volunteer registrations, general enquiries, and FAQ guidance. It is built as an internship-ready prototype that demonstrates how a small digital workflow can help an NGO collect structured records and reduce repeated FAQ work before human follow-up.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## Assignment Requirements Covered
+
+- Patient-support form
+- Volunteer-registration form
+- General-contact form
+- NVIDIA-powered CareBot FAQ assistant
+- Supabase PostgreSQL storage
+- Automation concept with ticket IDs, summary, priority, and team routing
+- GitHub-ready source code
+- Vercel-ready deployment configuration
+
+## Tech Stack
+
+- Next.js App Router
+- Tailwind CSS
+- Supabase PostgreSQL
+- NVIDIA hosted API
+- `meta/llama-3.3-70b-instruct`
+- React Hook Form
+- Zod
+- Lucide React
+- Vercel
+
+## AI Idea
+
+CareBot uses NVIDIA's hosted Llama model through a server-side Next.js route at `/api/chat`. The browser never receives the NVIDIA API key. A strict CareConnect system prompt limits the chatbot to NGO service, registration, contact, privacy, workflow, and safety questions. Unknown NGO facts are redirected to the contact form, and medical-advice requests are rejected safely.
+
+## Automation Idea
+
+Patient requests are organized automatically before storage:
+
+- Ticket generation in the `CC-DDMM-XXXX` format
+- Keyword-based priority classification
+- Suggested NGO team routing from support category
+- Brief non-diagnostic request summary
+- Emergency disclaimer for urgent keywords
+
+## NGO Use-Case
+
+CareConnect gives an NGO a central intake point for patient-support requests, volunteer interest, and public messages. Supabase keeps records structured for review, while CareBot handles common FAQ questions so staff can focus on human follow-up.
+
+## Environment Variables
+
+Create `.env.local` with:
+
+```env
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+NVIDIA_API_KEY=
+NVIDIA_FALLBACK_API_KEY=
+NVIDIA_MODEL=meta/llama-3.3-70b-instruct
+NVIDIA_FALLBACK_MODEL=meta/llama-3.1-8b-instruct
+NGO_CONTACT_EMAIL=
+NGO_CONTACT_PHONE=
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+`NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` are browser-safe only when Row Level Security policies are configured. `NVIDIA_API_KEY` and `NVIDIA_FALLBACK_API_KEY` must stay server-side and must never use a `NEXT_PUBLIC_` prefix.
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+## Supabase Setup
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1. Create a Supabase project.
+2. Open SQL Editor.
+3. Run `supabase/schema.sql`.
+4. Copy the project URL and anonymous key.
+5. Add those values to `.env.local`.
+6. Create an NVIDIA API key.
+7. Add the NVIDIA key to `.env.local`.
+8. Start the project locally.
 
-## Learn More
+Anonymous visitors can insert records, but cannot read, update, or delete public submissions. For this core internship version, submissions can be reviewed securely from the Supabase dashboard.
 
-To learn more about Next.js, take a look at the following resources:
+## Local Development
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+git clone YOUR_REPOSITORY_URL
+cd YOUR_PROJECT_DIRECTORY
+npm install
+npm run dev
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Production Build
 
-## Deploy on Vercel
+```bash
+npm run build
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Vercel Deployment
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. Push the project to GitHub.
+2. Import the repository into Vercel.
+3. Add all environment variables from `.env.example`.
+4. Deploy.
+5. Test all three forms with Supabase configured.
+6. Test CareBot with `NVIDIA_API_KEY` configured.
+7. Paste the live URL into this README.
+
+## Project Structure
+
+```text
+app/
+  api/
+    chat/route.js
+    contact/route.js
+    patient-support/route.js
+    volunteer/route.js
+  globals.css
+  layout.js
+  page.js
+components/
+  CareBot.jsx
+  ContactForm.jsx
+  FormTabs.jsx
+  Hero.jsx
+  Navbar.jsx
+  PatientSupportForm.jsx
+  VolunteerForm.jsx
+lib/
+  careBotKnowledge.js
+  requestAutomation.js
+  supabaseServer.js
+  ticketGenerator.js
+  validators.js
+supabase/
+  schema.sql
+```
+
+## Disclaimer
+
+This is an educational concept prototype. It does not provide medical advice, diagnosis, treatment, or emergency services. Users should not submit confidential medical records.
